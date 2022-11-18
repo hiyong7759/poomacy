@@ -1,0 +1,17 @@
+<svg width="147" height="76" viewBox="0 0 147 76" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="deonaeun_logo">
+<path id="Ellipse" d="M143 15C143 21.6274 137.627 27 131 27C124.373 27 119 21.6274 119 15C119 8.37258 124.373 3 131 3C137.627 3 143 8.37258 143 15Z" stroke="#FF6600" stroke-width="6"/>
+<path id="Line12" d="M143.5 72.5H3.5" stroke="#424242" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="Line11" d="M143.5 42.5V72.5" stroke="#424242" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="Line10" d="M119 42.5H143.5" stroke="#424242" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="Line9" d="M89.5 37.5H103.5" stroke="#424242" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="Line7" d="M54.5 60H79.5" stroke="#424242" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="Line5" d="M39.5 38V60" stroke="#FF6600" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="Line6" d="M54.5 37.5V60" stroke="#424242" stroke-width="6" stroke-linecap="round"/>
+<path id="Line8" d="M89.5 38V60" stroke="#424242" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="Line4" d="M25.5 37.5H39.5" stroke="#FF6600" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="Line3" d="M3.5 60H28.5" stroke="#FF6600" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="Line2" d="M3.5 15V60" stroke="#FF6600" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="Line1" d="M3.5 15H103.5" stroke="#FF6600" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+</svg>
