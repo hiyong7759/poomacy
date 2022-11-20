@@ -66,7 +66,7 @@ const navConfig = [
         path: PATH_DASHBOARD.holidays.root,
         icon: ICONS.calendar,
         children: [
-          { title: '휴가부여관리', path: PATH_DASHBOARD.holidays.yearReg },
+          { title: '휴가부여관리', path: PATH_DASHBOARD.holidays.new },
           { title: '휴가사용내역조회', path: PATH_DASHBOARD.holidays.list },
         ],
       },
@@ -78,6 +78,26 @@ const navConfig = [
         children: [
           { title: '발령정보목록', path: PATH_DASHBOARD.appoint.list },
           { title: '발령정보등록', path: PATH_DASHBOARD.appoint.new },
+        ],
+      },
+      // invoice
+      {
+        title: 'invoice',
+        path: PATH_DASHBOARD.invoice.root,
+        icon: ICONS.folder,
+        children: [
+          { title: 'invoiceList', path: PATH_DASHBOARD.invoice.list },
+          { title: 'invoiceNew', path: PATH_DASHBOARD.invoice.new },
+        ],
+      },
+      // library
+      {
+        title: '도서관',
+        path: PATH_DASHBOARD.library.root,
+        icon: ICONS.folder,
+        children: [
+          { title: '도서목록', path: PATH_DASHBOARD.library.list },
+          { title: '도서등록', path: PATH_DASHBOARD.library.new },
         ],
       },
       // USER

@@ -78,6 +78,13 @@ export const PATH_DASHBOARD = {
     new: path(ROOTS_DASHBOARD, '/appoint/new'),
     edit: (name: string) => path(ROOTS_DASHBOARD, `/appoint/${name}/edit`),
   },
+  library: {
+    root: path(ROOTS_DASHBOARD, '/library'),
+    list: path(ROOTS_DASHBOARD, '/library/list'),
+    new: path(ROOTS_DASHBOARD, '/library/new'),
+    edit: path(ROOTS_DASHBOARD, '/library/edit'),
+    details: path(ROOTS_DASHBOARD, '/library/details'),
+  },
   eCommerce: {
     root: path(ROOTS_DASHBOARD, '/e-commerce'),
     shop: path(ROOTS_DASHBOARD, '/e-commerce/shop'),
