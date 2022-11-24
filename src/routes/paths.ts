@@ -54,13 +54,14 @@ export const PATH_DASHBOARD = {
     list: path(ROOTS_DASHBOARD, '/hr/list'),
     new: path(ROOTS_DASHBOARD, '/hr/new'),
     edit: path(ROOTS_DASHBOARD, '/hr/edit'),
-    details: path(ROOTS_DASHBOARD, '/hr/details'),
+    view: (name: string) => path(ROOTS_DASHBOARD, `/hr/view/${name}`),
   },
   holidays: {
     root: path(ROOTS_DASHBOARD, '/holidays'),
     new: path(ROOTS_DASHBOARD, '/holidays/new'),
     edit: path(ROOTS_DASHBOARD, '/holidays/edit'),
     list: path(ROOTS_DASHBOARD, '/holidays/list'),
+    view: (name: string) => path(ROOTS_DASHBOARD, `/holidays/view/${name}`),
   },
   user: {
     root: path(ROOTS_DASHBOARD, '/user'),
@@ -83,7 +84,7 @@ export const PATH_DASHBOARD = {
     list: path(ROOTS_DASHBOARD, '/library/list'),
     new: path(ROOTS_DASHBOARD, '/library/new'),
     edit: path(ROOTS_DASHBOARD, '/library/edit'),
-    details: path(ROOTS_DASHBOARD, '/library/details'),
+    view: (title: string) => path(ROOTS_DASHBOARD, `/library/${title}`),
   },
   eCommerce: {
     root: path(ROOTS_DASHBOARD, '/e-commerce'),
