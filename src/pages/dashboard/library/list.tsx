@@ -55,6 +55,19 @@ import axios from 'axios';
 
 // ----------------------------------------------------------------------
 
+interface LibraryData {
+  product_no: number;
+  product: string;
+  publisher: string;
+  purchaseDate: string;
+  quantity: number;
+  price: string;
+  list_price: number;
+  author: string;
+  requester: string;
+  location: string;
+}
+
 const SERVICE_OPTIONS = [
   'all',
   'full stack development',
@@ -80,7 +93,15 @@ LibraryListPage.getLayout = (page: React.ReactElement) => <DashboardLayout>{page
 
 // ----------------------------------------------------------------------
 
-export default function LibraryListPage() {
+export default function LibraryListPage({ library }): any {
+
+  console.log(library.properties);
+  const libraryData = library.properties
+
+  // const TABLE_DATA: LibraryData = [
+  //   product_no = libraryData.product_no.number
+  // ]
+  
   const theme = useTheme();
 
   const { themeStretch } = useSettingsContext();
@@ -542,4 +563,22 @@ function applyFilter({
   }
 
   return inputData;
+}
+
+export async function getStaticProps() {
+  const options = {
+    method: 'GET',
+    headers: {Authorization: 'Bearer secret_xE0zSqxUF63oIR8RjSygwr0A5OX6XnhmzhKBhmVQdNv', accept: 'application/json', 'Notion-Version': '2022-06-28'}
+  };
+  
+  const res = await fetch('https://api.notion.com/v1/databases/7e28fec4426f44c4abef9e7333eca0ec', options);
+ 
+  const library = await res.json();
+  
+  return {
+    
+    props: {
+      library,
+    }, // will be passed to the page component as props
+  }
 }
