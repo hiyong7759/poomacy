@@ -51,22 +51,7 @@ import {
 import InvoiceAnalytic from '../../../sections/@dashboard/invoice/InvoiceAnalytic';
 import { InvoiceTableRow, InvoiceTableToolbar } from '../../../sections/@dashboard/invoice/list';
 
-import axios from 'axios';
-
 // ----------------------------------------------------------------------
-
-interface LibraryData {
-  product_no: number;
-  product: string;
-  publisher: string;
-  purchaseDate: string;
-  quantity: number;
-  price: string;
-  list_price: number;
-  author: string;
-  requester: string;
-  location: string;
-}
 
 const SERVICE_OPTIONS = [
   'all',
@@ -93,14 +78,7 @@ LibraryListPage.getLayout = (page: React.ReactElement) => <DashboardLayout>{page
 
 // ----------------------------------------------------------------------
 
-export default function LibraryListPage({ library }): any {
-
-  console.log(library.properties);
-  const libraryData = library.properties
-
-  // const TABLE_DATA: LibraryData = [
-  //   product_no = libraryData.product_no.number
-  // ]
+export default function LibraryListPage({ library }): IResponse {
   
   const theme = useTheme();
 
@@ -256,6 +234,8 @@ export default function LibraryListPage({ library }): any {
     setFilterStartDate(null);
   };
 
+  console.log(library);
+
   return (
     <>
       <Head>
@@ -296,9 +276,11 @@ export default function LibraryListPage({ library }): any {
             >
               <InvoiceAnalytic
                 title="Total"
-                total={tableData.length}
+                total={library.results.length}
                 percent={100}
-                price={sumBy(tableData, 'totalPrice')}
+                price={sumBy(library.results.map((result) => (
+                  result.properties.price
+                )), 'number')}
                 icon="ic:round-receipt"
                 color={theme.palette.info.main}
               />
@@ -565,16 +547,76 @@ function applyFilter({
   return inputData;
 }
 
+interface IResult {
+  id: string;
+  properties: {
+    book_no: {
+      number: number;
+    }
+    book: {
+      title: [{ text: { content: string }}];
+    };
+    publisher: {
+      rich_text: [{ text: { content: string }}];
+    };
+    purchaseDate: {
+      rich_text: [{ text: { content: string }}];
+    };
+    quantity: {
+      number: number;
+    }
+    price: {
+      number: number;
+    }
+    list_price: {
+      number: number;
+    }
+    author: {
+      rich_text: [{ text: { content: string }}];
+    };
+    requester: {
+      rich_text: [{ text: { content: string }}];
+    };
+    location: {
+      select: string;
+    };
+  }
+}
+
+interface IResponse {
+  has_more: boolean;
+  next_cursor: string;
+  results: IResult[];
+}
+
+
 export async function getStaticProps() {
+
+  
   const options = {
-    method: 'GET',
-    headers: {Authorization: 'Bearer secret_xE0zSqxUF63oIR8RjSygwr0A5OX6XnhmzhKBhmVQdNv', accept: 'application/json', 'Notion-Version': '2022-06-28'}
+    method: 'POST',
+    headers: {Authorization: 'Bearer secret_xE0zSqxUF63oIR8RjSygwr0A5OX6XnhmzhKBhmVQdNv', accept: 'application/json', 'Notion-Version': '2022-06-28'},
+    body: JSON.stringify({page_size: 100})
   };
   
-  const res = await fetch('https://api.notion.com/v1/databases/7e28fec4426f44c4abef9e7333eca0ec', options);
+  const res = await fetch('https://api.notion.com/v1/databases/7e28fec4426f44c4abef9e7333eca0ec/query', options);
  
-  const library = await res.json();
-  
+  const library: IResponse = await res.json();
+
+  while (library.has_more) {
+    const options = {
+      method: 'POST',
+      headers: {Authorization: 'Bearer secret_xE0zSqxUF63oIR8RjSygwr0A5OX6XnhmzhKBhmVQdNv', accept: 'application/json', 'Notion-Version': '2022-06-28'},
+      body: JSON.stringify({start_cursor: library.next_cursor, page_size: 100})
+    };
+    const res1 = await fetch('https://api.notion.com/v1/databases/7e28fec4426f44c4abef9e7333eca0ec/query', options);
+
+    const library1: IResponse = await res1.json();
+
+    console.log(library1)
+  }
+    
+ 
   return {
     
     props: {
