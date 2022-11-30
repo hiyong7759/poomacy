@@ -72,13 +72,98 @@ const TABLE_HEAD = [
   { id: '' },
 ];
 
+interface IResult {
+  id: string;
+  properties: {
+    book_no: {
+      number: number;
+    }
+    book: {
+      title: [{ text: { content: string }}];
+    };
+    publisher: {
+      rich_text: [{ text: { content: string }}];
+    };
+    purchaseDate: {
+      rich_text: [{ text: { content: string }}];
+    };
+    quantity: {
+      number: number;
+    }
+    price: {
+      number: number;
+    }
+    list_price: {
+      number: number;
+    }
+    author: {
+      rich_text: [{ text: { content: string }}];
+    };
+    requester: {
+      rich_text: [{ text: { content: string }}];
+    };
+    location: {
+      select: string;
+    };
+  }
+}
+
+interface IResponse {
+  has_more: boolean;
+  next_cursor: string;
+  results: IResult[];
+}
+
+
+export async function getStaticProps() {
+
+  
+  const options = {
+    method: 'POST',
+    headers: {Authorization: 'Bearer secret_xE0zSqxUF63oIR8RjSygwr0A5OX6XnhmzhKBhmVQdNv', accept: 'application/json', 'Notion-Version': '2022-06-28'},
+    body: JSON.stringify({page_size: 100})
+  };
+  
+  const res = await fetch('https://api.notion.com/v1/databases/7e28fec4426f44c4abef9e7333eca0ec/query', options);
+ 
+  const library: IResponse = await res.json();
+
+  while (library.has_more) {
+    const options = {
+      method: 'POST',
+      headers: {Authorization: 'Bearer secret_xE0zSqxUF63oIR8RjSygwr0A5OX6XnhmzhKBhmVQdNv', accept: 'application/json', 'Notion-Version': '2022-06-28'},
+      body: JSON.stringify({start_cursor: library.next_cursor, page_size: 100})
+    };
+    const res1 = await fetch('https://api.notion.com/v1/databases/7e28fec4426f44c4abef9e7333eca0ec/query', options);
+
+    const library1: IResponse = await res1.json();
+
+    library.has_more = library1.has_more
+    library.next_cursor = library1.next_cursor
+
+    console.log('library.has_more', library.has_more)
+    console.log('library.next_cursor', library.next_cursor)
+    console.log('library1.has_more', library1.has_more)
+    console.log('library1.next_cursor', library1.next_cursor)
+    // console.log('library1', library1.results)
+  }
+    
+ 
+  return {
+    
+    props: {
+      library,
+    }, // will be passed to the page component as props
+  }
+}
+
 // ----------------------------------------------------------------------
 
 LibraryListPage.getLayout = (page: React.ReactElement) => <DashboardLayout>{page}</DashboardLayout>;
 
 // ----------------------------------------------------------------------
 
-export default function LibraryListPage({ library }): IResponse {
+export default function LibraryListPage({ library }: IResponse) {
   
   const theme = useTheme();
 
@@ -278,7 +363,7 @@ export default function LibraryListPage({ library }): IResponse {
                 title="Total"
                 total={library.results.length}
                 percent={100}
-                price={sumBy(library.results.map((result) => (
+                price={sumBy(library.results.map((result): IResult => (
                   result.properties.price
                 )), 'number')}
                 icon="ic:round-receipt"
@@ -545,82 +630,4 @@ function applyFilter({
   }
 
   return inputData;
-}
-
-interface IResult {
-  id: string;
-  properties: {
-    book_no: {
-      number: number;
-    }
-    book: {
-      title: [{ text: { content: string }}];
-    };
-    publisher: {
-      rich_text: [{ text: { content: string }}];
-    };
-    purchaseDate: {
-      rich_text: [{ text: { content: string }}];
-    };
-    quantity: {
-      number: number;
-    }
-    price: {
-      number: number;
-    }
-    list_price: {
-      number: number;
-    }
-    author: {
-      rich_text: [{ text: { content: string }}];
-    };
-    requester: {
-      rich_text: [{ text: { content: string }}];
-    };
-    location: {
-      select: string;
-    };
-  }
-}
-
-interface IResponse {
-  has_more: boolean;
-  next_cursor: string;
-  results: IResult[];
-}
-
-
-export async function getStaticProps() {
-
-  
-  const options = {
-    method: 'POST',
-    headers: {Authorization: 'Bearer secret_xE0zSqxUF63oIR8RjSygwr0A5OX6XnhmzhKBhmVQdNv', accept: 'application/json', 'Notion-Version': '2022-06-28'},
-    body: JSON.stringify({page_size: 100})
-  };
-  
-  const res = await fetch('https://api.notion.com/v1/databases/7e28fec4426f44c4abef9e7333eca0ec/query', options);
- 
-  const library: IResponse = await res.json();
-
-  while (library.has_more) {
-    const options = {
-      method: 'POST',
-      headers: {Authorization: 'Bearer secret_xE0zSqxUF63oIR8RjSygwr0A5OX6XnhmzhKBhmVQdNv', accept: 'application/json', 'Notion-Version': '2022-06-28'},
-      body: JSON.stringify({start_cursor: library.next_cursor, page_size: 100})
-    };
-    const res1 = await fetch('https://api.notion.com/v1/databases/7e28fec4426f44c4abef9e7333eca0ec/query', options);
-
-    const library1: IResponse = await res1.json();
-
-    console.log(library1)
-  }
-    
- 
-  return {
-    
-    props: {
-      library,
-    }, // will be passed to the page component as props
-  }
 }
