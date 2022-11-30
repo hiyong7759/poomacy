@@ -48,9 +48,11 @@ import {
   TablePaginationCustom,
 } from '../../../components/table';
 // sections
-import InvoiceAnalytic from '../../../sections/@dashboard/invoice/InvoiceAnalytic';
+import LibraryAnalytic from '../../../sections/@dashboard/library/libraryAnalytic';
 import { InvoiceTableRow, InvoiceTableToolbar } from '../../../sections/@dashboard/invoice/list';
 
+// notion sdk
+import { Client } from "@notionhq/client";
 // ----------------------------------------------------------------------
 
 const SERVICE_OPTIONS = [
@@ -63,13 +65,13 @@ const SERVICE_OPTIONS = [
 ];
 
 const TABLE_HEAD = [
-  { id: 'invoiceNumber', label: 'Client', align: 'left' },
-  { id: 'createDate', label: 'Create', align: 'left' },
-  { id: 'dueDate', label: 'Due', align: 'left' },
-  { id: 'price', label: 'Amount', align: 'center', width: 140 },
-  { id: 'sent', label: 'Sent', align: 'center', width: 140 },
-  { id: 'status', label: 'Status', align: 'left' },
-  { id: '' },
+  { id: 'books', label: '도서명', align: 'left' },
+  { id: 'purchaseDate', label: '구매일시', align: 'left' },
+  { id: 'publisher', label: '출판사', align: 'left' },
+  { id: 'list_price', label: '구매가격', align: 'center', width: 140 },
+  { id: 'quantity', label: '수량', align: 'center', width: 140 },
+  { id: 'requester', label: '구매자', align: 'left' },
+  { id: 'location', label: '현위치', align: 'left' },
 ];
 
 interface IResult {
@@ -108,54 +110,38 @@ interface IResult {
   }
 }
 
-interface IResponse {
-  has_more: boolean;
-  next_cursor: string;
-  results: IResult[];
-}
+
+export const getStaticProps = async () => {
+  const notion = new Client({
+    auth: process.env.NOTION_SECRET,
+  });
+
+  let books = [];
+
+  let data = await notion.databases.query({
+    database_id: `${process.env.DATABASE_ID}`,
+  });
 
 
-export async function getStaticProps() {
 
-  
-  const options = {
-    method: 'POST',
-    headers: {Authorization: 'Bearer secret_xE0zSqxUF63oIR8RjSygwr0A5OX6XnhmzhKBhmVQdNv', accept: 'application/json', 'Notion-Version': '2022-06-28'},
-    body: JSON.stringify({page_size: 100})
-  };
-  
-  const res = await fetch('https://api.notion.com/v1/databases/7e28fec4426f44c4abef9e7333eca0ec/query', options);
- 
-  const library: IResponse = await res.json();
+  books = [...data.results];
 
-  while (library.has_more) {
-    const options = {
-      method: 'POST',
-      headers: {Authorization: 'Bearer secret_xE0zSqxUF63oIR8RjSygwr0A5OX6XnhmzhKBhmVQdNv', accept: 'application/json', 'Notion-Version': '2022-06-28'},
-      body: JSON.stringify({start_cursor: library.next_cursor, page_size: 100})
-    };
-    const res1 = await fetch('https://api.notion.com/v1/databases/7e28fec4426f44c4abef9e7333eca0ec/query', options);
+  while (data.has_more) {
+    data = await notion.databases.query({
+      database_id: `${process.env.DATABASE_ID}`,
+      start_cursor: `${data.next_cursor}`,
+    });
 
-    const library1: IResponse = await res1.json();
-
-    library.has_more = library1.has_more
-    library.next_cursor = library1.next_cursor
-
-    console.log('library.has_more', library.has_more)
-    console.log('library.next_cursor', library.next_cursor)
-    console.log('library1.has_more', library1.has_more)
-    console.log('library1.next_cursor', library1.next_cursor)
-    // console.log('library1', library1.results)
+    books = [...books, ...data.results];
   }
     
- 
   return {
-    
     props: {
-      library,
-    }, // will be passed to the page component as props
-  }
-}
+      books,
+    },
+  };
+};
+
 
 // ----------------------------------------------------------------------
 
@@ -163,8 +149,9 @@ LibraryListPage.getLayout = (page: React.ReactElement) => <DashboardLayout>{page
 
 // ----------------------------------------------------------------------
 
-export default function LibraryListPage({ library }: IResponse) {
+export default function LibraryListPage({ books }): JSX.Element {
   
+  console.log(books)
   const theme = useTheme();
 
   const { themeStretch } = useSettingsContext();
@@ -190,6 +177,8 @@ export default function LibraryListPage({ library }: IResponse) {
     onChangeRowsPerPage,
   } = useTable({ defaultOrderBy: 'createDate' });
 
+  const [booksData, setBooksData] = useState(books);
+
   const [tableData, setTableData] = useState(_invoices);
 
   const [filterName, setFilterName] = useState('');
@@ -213,7 +202,7 @@ export default function LibraryListPage({ library }: IResponse) {
     filterStartDate,
     filterEndDate,
   });
-
+  
   const dataInPage = dataFiltered.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
   const denseHeight = dense ? 56 : 76;
@@ -234,18 +223,9 @@ export default function LibraryListPage({ library }: IResponse) {
   const getLengthByStatus = (status: string) =>
     tableData.filter((item) => item.status === status).length;
 
-  const getTotalPriceByStatus = (status: string) =>
-    sumBy(
-      tableData.filter((item) => item.status === status),
-      'totalPrice'
-    );
-
-  const getPercentByStatus = (status: string) =>
-    (getLengthByStatus(status) / tableData.length) * 100;
-
   const TABS = [
-    { value: 'all', label: 'All', color: 'info', count: tableData.length },
-    { value: 'paid', label: 'Paid', color: 'success', count: getLengthByStatus('paid') },
+    { value: 'all', label: '전체', color: 'info', count: tableData.length },
+    { value: 'headOffice', label: '본사', color: 'success', count: getLengthByStatus('paid') },
     { value: 'unpaid', label: 'Unpaid', color: 'warning', count: getLengthByStatus('unpaid') },
     { value: 'overdue', label: 'Overdue', color: 'error', count: getLengthByStatus('overdue') },
     { value: 'draft', label: 'Draft', color: 'default', count: getLengthByStatus('draft') },
@@ -319,8 +299,6 @@ export default function LibraryListPage({ library }: IResponse) {
     setFilterStartDate(null);
   };
 
-  console.log(library);
-
   return (
     <>
       <Head>
@@ -359,52 +337,17 @@ export default function LibraryListPage({ library }: IResponse) {
               divider={<Divider orientation="vertical" flexItem sx={{ borderStyle: 'dashed' }} />}
               sx={{ py: 2 }}
             >
-              <InvoiceAnalytic
-                title="Total"
-                total={library.results.length}
+              <LibraryAnalytic
+                title="도서가격 합계"
+                total={books.length}
                 percent={100}
-                price={sumBy(library.results.map((result): IResult => (
+                price={sumBy(books.map((result: any): IResult => (
                   result.properties.price
                 )), 'number')}
                 icon="ic:round-receipt"
                 color={theme.palette.info.main}
               />
 
-              <InvoiceAnalytic
-                title="Paid"
-                total={getLengthByStatus('paid')}
-                percent={getPercentByStatus('paid')}
-                price={getTotalPriceByStatus('paid')}
-                icon="eva:checkmark-circle-2-fill"
-                color={theme.palette.success.main}
-              />
-
-              <InvoiceAnalytic
-                title="Unpaid"
-                total={getLengthByStatus('unpaid')}
-                percent={getPercentByStatus('unpaid')}
-                price={getTotalPriceByStatus('unpaid')}
-                icon="eva:clock-fill"
-                color={theme.palette.warning.main}
-              />
-
-              <InvoiceAnalytic
-                title="Overdue"
-                total={getLengthByStatus('overdue')}
-                percent={getPercentByStatus('overdue')}
-                price={getTotalPriceByStatus('overdue')}
-                icon="eva:bell-fill"
-                color={theme.palette.error.main}
-              />
-
-              <InvoiceAnalytic
-                title="Draft"
-                total={getLengthByStatus('draft')}
-                percent={getPercentByStatus('draft')}
-                price={getTotalPriceByStatus('draft')}
-                icon="eva:file-fill"
-                color={theme.palette.text.secondary}
-              />
             </Stack>
           </Scrollbar>
         </Card>
