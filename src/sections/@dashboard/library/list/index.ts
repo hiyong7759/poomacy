@@ -1,2 +1,2 @@
 export { default as InvoiceTableRow } from './libraryTableRow';
-export { default as InvoiceTableToolbar } from './InvoiceTableToolbar';
+export { default as InvoiceTableToolbar } from './libraryTableToolbar';
