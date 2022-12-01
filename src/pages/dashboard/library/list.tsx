@@ -27,7 +27,7 @@ import { fTimestamp } from '../../../utils/formatTime';
 // _mock_
 import { _invoices } from '../../../_mock/arrays';
 // @types
-import { IInvoice } from '../../../@types/invoice';
+import { IBooks } from '../../../@types/library';
 // layouts
 import DashboardLayout from '../../../layouts/dashboard';
 // components
@@ -53,6 +53,8 @@ import { InvoiceTableRow, InvoiceTableToolbar } from '../../../sections/@dashboa
 
 // notion sdk
 import { Client } from "@notionhq/client";
+import LibraryTableRow from 'src/sections/@dashboard/library/list/libraryTableRow';
+import { result } from 'lodash';
 // ----------------------------------------------------------------------
 
 const SERVICE_OPTIONS = [
@@ -74,6 +76,7 @@ const TABLE_HEAD = [
   { id: 'location', label: '현위치', align: 'left' },
 ];
 
+// 노션 API data에서 사용될 data interface
 interface IResult {
   id: string;
   properties: {
@@ -110,31 +113,40 @@ interface IResult {
   }
 }
 
-
+// 노션 API 데이터를 가져오기위해 getStaticProps 추가 서버사이드 랜더링 
 export const getStaticProps = async () => {
+  
+  // 노션 인증키 객체 생성 (노션 SDK : https://github.com/makenotion/notion-sdk-js)
   const notion = new Client({
     auth: process.env.NOTION_SECRET,
   });
 
   let books = [];
 
+  // 노션 DATABASE API에 DATABASE_ID로 API 호출하여 응답결과 data에 저장
   let data = await notion.databases.query({
     database_id: `${process.env.DATABASE_ID}`,
   });
 
-
-
+  // books 배열에 입력
   books = [...data.results];
 
+  // has_more = false 마지막 데이터가 없을때 까지 반복
   while (data.has_more) {
     data = await notion.databases.query({
       database_id: `${process.env.DATABASE_ID}`,
       start_cursor: `${data.next_cursor}`,
     });
 
+    // books에 증분 추가
     books = [...books, ...data.results];
   }
-    
+
+  books.map((results) => {
+    results.
+  });
+
+  //{ props: books } 빌드타임에 받아서 LibraryListPage로 보낸다
   return {
     props: {
       books,
@@ -149,7 +161,8 @@ LibraryListPage.getLayout = (page: React.ReactElement) => <DashboardLayout>{page
 
 // ----------------------------------------------------------------------
 
-export default function LibraryListPage({ books }): JSX.Element {
+//getStaticProps()에서 받은 데이터값을 props { books } 로 받음
+export default function LibraryListPage({ books }: { books: IResult[] }) {
   
   console.log(books)
   const theme = useTheme();
@@ -185,20 +198,18 @@ export default function LibraryListPage({ books }): JSX.Element {
 
   const [openConfirm, setOpenConfirm] = useState(false);
 
-  const [filterStatus, setFilterStatus] = useState('all');
+  const [filterLocation, setfilterLocation] = useState('all');
 
-  const [filterService, setFilterService] = useState('all');
 
   const [filterEndDate, setFilterEndDate] = useState<Date | null>(null);
 
   const [filterStartDate, setFilterStartDate] = useState<Date | null>(null);
 
   const dataFiltered = applyFilter({
-    inputData: tableData,
+    inputData: books,
     comparator: getComparator(order, orderBy),
     filterName,
-    filterService,
-    filterStatus,
+    filterLocation,
     filterStartDate,
     filterEndDate,
   });
@@ -208,15 +219,13 @@ export default function LibraryListPage({ books }): JSX.Element {
   const denseHeight = dense ? 56 : 76;
 
   const isFiltered =
-    filterStatus !== 'all' ||
+    filterLocation !== 'all' ||
     filterName !== '' ||
-    filterService !== 'all' ||
     (!!filterStartDate && !!filterEndDate);
 
   const isNotFound =
     (!dataFiltered.length && !!filterName) ||
-    (!dataFiltered.length && !!filterStatus) ||
-    (!dataFiltered.length && !!filterService) ||
+    (!dataFiltered.length && !!filterLocation) ||
     (!dataFiltered.length && !!filterEndDate) ||
     (!dataFiltered.length && !!filterStartDate);
 
@@ -239,19 +248,14 @@ export default function LibraryListPage({ books }): JSX.Element {
     setOpenConfirm(false);
   };
 
-  const handleFilterStatus = (event: React.SyntheticEvent<Element, Event>, newValue: string) => {
+  const handlefilterLocation = (event: React.SyntheticEvent<Element, Event>, newValue: string) => {
     setPage(0);
-    setFilterStatus(newValue);
+    setfilterLocation(newValue);
   };
 
   const handleFilterName = (event: React.ChangeEvent<HTMLInputElement>) => {
     setPage(0);
     setFilterName(event.target.value);
-  };
-
-  const handleFilterService = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setPage(0);
-    setFilterService(event.target.value);
   };
 
   const handleDeleteRow = (id: string) => {
@@ -293,8 +297,7 @@ export default function LibraryListPage({ books }): JSX.Element {
 
   const handleResetFilter = () => {
     setFilterName('');
-    setFilterStatus('all');
-    setFilterService('all');
+    setfilterLocation('all');
     setFilterEndDate(null);
     setFilterStartDate(null);
   };
@@ -354,8 +357,8 @@ export default function LibraryListPage({ books }): JSX.Element {
 
         <Card>
           <Tabs
-            value={filterStatus}
-            onChange={handleFilterStatus}
+            value={filterLocation}
+            onChange={handlefilterLocation}
             sx={{
               px: 2,
               bgcolor: 'background.neutral',
@@ -380,13 +383,11 @@ export default function LibraryListPage({ books }): JSX.Element {
           <InvoiceTableToolbar
             isFiltered={isFiltered}
             filterName={filterName}
-            filterService={filterService}
             filterEndDate={filterEndDate}
             onFilterName={handleFilterName}
             optionsService={SERVICE_OPTIONS}
             onResetFilter={handleResetFilter}
             filterStartDate={filterStartDate}
-            onFilterService={handleFilterService}
             onFilterStartDate={(newValue) => {
               setFilterStartDate(newValue);
             }}
@@ -456,7 +457,7 @@ export default function LibraryListPage({ books }): JSX.Element {
                   {dataFiltered
                     .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                     .map((row) => (
-                      <InvoiceTableRow
+                      <LibraryTableRow
                         key={row.id}
                         row={row}
                         selected={selected.includes(row.id)}
@@ -523,16 +524,14 @@ function applyFilter({
   inputData,
   comparator,
   filterName,
-  filterStatus,
-  filterService,
+  filterLocation,
   filterStartDate,
   filterEndDate,
 }: {
-  inputData: IInvoice[];
+  inputData: IResult[];
   comparator: (a: any, b: any) => number;
   filterName: string;
-  filterStatus: string;
-  filterService: string;
+  filterLocation: string;
   filterStartDate: Date | null;
   filterEndDate: Date | null;
 }) {
@@ -548,27 +547,20 @@ function applyFilter({
 
   if (filterName) {
     inputData = inputData.filter(
-      (invoice) =>
-        invoice.invoiceNumber.toLowerCase().indexOf(filterName.toLowerCase()) !== -1 ||
-        invoice.invoiceTo.name.toLowerCase().indexOf(filterName.toLowerCase()) !== -1
+      (book) =>
+        book.properties.book.title[0].text.content.toLowerCase().indexOf(filterName.toLowerCase()) !== -1
     );
   }
 
-  if (filterStatus !== 'all') {
-    inputData = inputData.filter((invoice) => invoice.status === filterStatus);
-  }
-
-  if (filterService !== 'all') {
-    inputData = inputData.filter((invoice) =>
-      invoice.items.some((c) => c.service === filterService)
-    );
+  if (filterLocation !== 'all') {
+    inputData = inputData.filter((book) => book.properties.location.select === filterLocation);
   }
 
   if (filterStartDate && filterEndDate) {
     inputData = inputData.filter(
-      (invoice) =>
-        fTimestamp(invoice.createDate) >= fTimestamp(filterStartDate) &&
-        fTimestamp(invoice.createDate) <= fTimestamp(filterEndDate)
+      (book) =>
+        fTimestamp(book.properties.purchaseDate.rich_text[0].text.content) >= fTimestamp(filterStartDate) &&
+        fTimestamp(book.properties.purchaseDate.rich_text[0].text.content) <= fTimestamp(filterEndDate)
     );
   }
 
