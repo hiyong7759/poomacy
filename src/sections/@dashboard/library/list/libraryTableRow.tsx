@@ -12,9 +12,6 @@ import {
   IconButton,
   Typography,
 } from '@mui/material';
-// utils
-import { fDate } from '../../../../utils/formatTime';
-import { fCurrency } from '../../../../utils/formatNumber';
 // @types
 import { IBooks } from '../../../../@types/library';
 // components
@@ -87,7 +84,7 @@ export default function LibraryTableRow({
                 onClick={onViewRow}
                 sx={{ color: 'text.disabled', cursor: 'pointer' }}
               >
-                {`INV-${book_no}`}
+                {book_no}
               </Link>
             </div>
           </Stack>
@@ -95,9 +92,9 @@ export default function LibraryTableRow({
 
         <TableCell align="left">{publisher}</TableCell>
 
-        <TableCell align="left">{fDate(purchaseDate)}</TableCell>
+        <TableCell align="left">{purchaseDate}</TableCell>
 
-        <TableCell align="center">{fCurrency(list_price)}</TableCell>
+        <TableCell align="center">{list_price.toLocaleString()}원</TableCell>
 
         <TableCell align="center" sx={{ textTransform: 'capitalize' }}>
           {quantity}

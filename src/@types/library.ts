@@ -45,11 +45,12 @@ export type IBooks = {
   price: number;
   list_price: number;
   author: string;
-  requester: string;
-  location: string;
+  // purchaser: string | null | undefined;
+  location: string | null;
 };
 
-interface IResult {
+// 노션 API data에서 사용될 data interface
+export interface IResult {
   id: string;
   properties: {
     book_no: {
@@ -76,8 +77,8 @@ interface IResult {
     author: {
       rich_text: [{ text: { content: string }}];
     };
-    requester: {
-      rich_text: [{ text: { content: string }}];
+    purchaser: {
+      rich_text: [{ plain_text: string | null | undefined }];
     };
     location: {
       select: string;

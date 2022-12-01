@@ -7,8 +7,6 @@ import { useRouter } from 'next/router';
 // @mui
 import { useTheme } from '@mui/material/styles';
 import {
-  Tab,
-  Tabs,
   Card,
   Table,
   Stack,
@@ -22,16 +20,12 @@ import {
 } from '@mui/material';
 // routes
 import { PATH_DASHBOARD } from '../../../routes/paths';
-// utils
-import { fTimestamp } from '../../../utils/formatTime';
-// _mock_
-import { _invoices } from '../../../_mock/arrays';
+
 // @types
-import { IBooks } from '../../../@types/library';
+import { IBooks, IResult } from '../../../@types/library';
 // layouts
 import DashboardLayout from '../../../layouts/dashboard';
 // components
-import Label from '../../../components/label';
 import Iconify from '../../../components/iconify';
 import Scrollbar from '../../../components/scrollbar';
 import ConfirmDialog from '../../../components/confirm-dialog';
@@ -49,69 +43,22 @@ import {
 } from '../../../components/table';
 // sections
 import LibraryAnalytic from '../../../sections/@dashboard/library/libraryAnalytic';
-import { InvoiceTableRow, InvoiceTableToolbar } from '../../../sections/@dashboard/invoice/list';
 
 // notion sdk
 import { Client } from "@notionhq/client";
 import LibraryTableRow from 'src/sections/@dashboard/library/list/libraryTableRow';
-import { result } from 'lodash';
+import LibraryTableToolbar from 'src/sections/@dashboard/library/list/libraryTableToolbar';
 // ----------------------------------------------------------------------
-
-const SERVICE_OPTIONS = [
-  'all',
-  'full stack development',
-  'backend development',
-  'ui design',
-  'ui/ux design',
-  'front end development',
-];
 
 const TABLE_HEAD = [
   { id: 'books', label: '도서명', align: 'left' },
-  { id: 'purchaseDate', label: '구매일시', align: 'left' },
-  { id: 'publisher', label: '출판사', align: 'left' },
-  { id: 'list_price', label: '구매가격', align: 'center', width: 140 },
-  { id: 'quantity', label: '수량', align: 'center', width: 140 },
-  { id: 'requester', label: '구매자', align: 'left' },
+  { id: 'purchaseDate', label: '출판사', align: 'left' },
+  { id: 'publisher', label: '구매일시', align: 'left' },
+  { id: 'list_price', label: '구매가격', align: 'center', width: 100 },
+  { id: 'quantity', label: '수량', align: 'center' },
   { id: 'location', label: '현위치', align: 'left' },
+  { id: 'edit', label: '편집', align: 'left' },
 ];
-
-// 노션 API data에서 사용될 data interface
-interface IResult {
-  id: string;
-  properties: {
-    book_no: {
-      number: number;
-    }
-    book: {
-      title: [{ text: { content: string }}];
-    };
-    publisher: {
-      rich_text: [{ text: { content: string }}];
-    };
-    purchaseDate: {
-      rich_text: [{ text: { content: string }}];
-    };
-    quantity: {
-      number: number;
-    }
-    price: {
-      number: number;
-    }
-    list_price: {
-      number: number;
-    }
-    author: {
-      rich_text: [{ text: { content: string }}];
-    };
-    requester: {
-      rich_text: [{ text: { content: string }}];
-    };
-    location: {
-      select: string;
-    };
-  }
-}
 
 // 노션 API 데이터를 가져오기위해 getStaticProps 추가 서버사이드 랜더링 
 export const getStaticProps = async () => {
@@ -142,10 +89,6 @@ export const getStaticProps = async () => {
     books = [...books, ...data.results];
   }
 
-  books.map((results) => {
-    results.
-  });
-
   //{ props: books } 빌드타임에 받아서 LibraryListPage로 보낸다
   return {
     props: {
@@ -164,7 +107,21 @@ LibraryListPage.getLayout = (page: React.ReactElement) => <DashboardLayout>{page
 //getStaticProps()에서 받은 데이터값을 props { books } 로 받음
 export default function LibraryListPage({ books }: { books: IResult[] }) {
   
-  console.log(books)
+  const library: IBooks[] = books.map((row) => ({
+    id: row.id,
+    book_no: row.properties.book_no.number,
+    book: row.properties.book.title[0].text.content,
+    publisher: row.properties.publisher.rich_text[0].text.content,
+    purchaseDate: row.properties.purchaseDate.rich_text[0].text.content,
+    quantity: row.properties.quantity.number,
+    price: row.properties.price.number,
+    list_price: row.properties.list_price.number,
+    author: row.properties.author.rich_text[0].text.content,
+    // purchaser: row.properties.purchaser.rich_text[0].plain_text,
+    location: row.properties.location.select,
+  }));
+  console.log(library[0])
+  console.log(books[0])
   const theme = useTheme();
 
   const { themeStretch } = useSettingsContext();
@@ -190,28 +147,17 @@ export default function LibraryListPage({ books }: { books: IResult[] }) {
     onChangeRowsPerPage,
   } = useTable({ defaultOrderBy: 'createDate' });
 
-  const [booksData, setBooksData] = useState(books);
-
-  const [tableData, setTableData] = useState(_invoices);
+  const [libraryData, setLibrarysData] = useState(library);
 
   const [filterName, setFilterName] = useState('');
 
   const [openConfirm, setOpenConfirm] = useState(false);
 
-  const [filterLocation, setfilterLocation] = useState('all');
-
-
-  const [filterEndDate, setFilterEndDate] = useState<Date | null>(null);
-
-  const [filterStartDate, setFilterStartDate] = useState<Date | null>(null);
 
   const dataFiltered = applyFilter({
-    inputData: books,
+    inputData: libraryData,
     comparator: getComparator(order, orderBy),
     filterName,
-    filterLocation,
-    filterStartDate,
-    filterEndDate,
   });
   
   const dataInPage = dataFiltered.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
@@ -219,26 +165,10 @@ export default function LibraryListPage({ books }: { books: IResult[] }) {
   const denseHeight = dense ? 56 : 76;
 
   const isFiltered =
-    filterLocation !== 'all' ||
-    filterName !== '' ||
-    (!!filterStartDate && !!filterEndDate);
+     filterName !== '' ;
 
   const isNotFound =
-    (!dataFiltered.length && !!filterName) ||
-    (!dataFiltered.length && !!filterLocation) ||
-    (!dataFiltered.length && !!filterEndDate) ||
-    (!dataFiltered.length && !!filterStartDate);
-
-  const getLengthByStatus = (status: string) =>
-    tableData.filter((item) => item.status === status).length;
-
-  const TABS = [
-    { value: 'all', label: '전체', color: 'info', count: tableData.length },
-    { value: 'headOffice', label: '본사', color: 'success', count: getLengthByStatus('paid') },
-    { value: 'unpaid', label: 'Unpaid', color: 'warning', count: getLengthByStatus('unpaid') },
-    { value: 'overdue', label: 'Overdue', color: 'error', count: getLengthByStatus('overdue') },
-    { value: 'draft', label: 'Draft', color: 'default', count: getLengthByStatus('draft') },
-  ] as const;
+    (!dataFiltered.length && !!filterName);
 
   const handleOpenConfirm = () => {
     setOpenConfirm(true);
@@ -248,20 +178,15 @@ export default function LibraryListPage({ books }: { books: IResult[] }) {
     setOpenConfirm(false);
   };
 
-  const handlefilterLocation = (event: React.SyntheticEvent<Element, Event>, newValue: string) => {
-    setPage(0);
-    setfilterLocation(newValue);
-  };
-
   const handleFilterName = (event: React.ChangeEvent<HTMLInputElement>) => {
     setPage(0);
     setFilterName(event.target.value);
   };
 
   const handleDeleteRow = (id: string) => {
-    const deleteRow = tableData.filter((row) => row.id !== id);
+    const deleteRow = libraryData.filter((row) => row.id !== id);
     setSelected([]);
-    setTableData(deleteRow);
+    setLibrarysData(deleteRow);
 
     if (page > 0) {
       if (dataInPage.length < 2) {
@@ -271,9 +196,9 @@ export default function LibraryListPage({ books }: { books: IResult[] }) {
   };
 
   const handleDeleteRows = (selected: string[]) => {
-    const deleteRows = tableData.filter((row) => !selected.includes(row.id));
+    const deleteRows = libraryData.filter((row) => !selected.includes(row.id));
     setSelected([]);
-    setTableData(deleteRows);
+    setLibrarysData(deleteRows);
 
     if (page > 0) {
       if (selected.length === dataInPage.length) {
@@ -281,7 +206,7 @@ export default function LibraryListPage({ books }: { books: IResult[] }) {
       } else if (selected.length === dataFiltered.length) {
         setPage(0);
       } else if (selected.length > dataInPage.length) {
-        const newPage = Math.ceil((tableData.length - selected.length) / rowsPerPage) - 1;
+        const newPage = Math.ceil((libraryData.length - selected.length) / rowsPerPage) - 1;
         setPage(newPage);
       }
     }
@@ -297,9 +222,6 @@ export default function LibraryListPage({ books }: { books: IResult[] }) {
 
   const handleResetFilter = () => {
     setFilterName('');
-    setfilterLocation('all');
-    setFilterEndDate(null);
-    setFilterStartDate(null);
   };
 
   return (
@@ -356,55 +278,22 @@ export default function LibraryListPage({ books }: { books: IResult[] }) {
         </Card>
 
         <Card>
-          <Tabs
-            value={filterLocation}
-            onChange={handlefilterLocation}
-            sx={{
-              px: 2,
-              bgcolor: 'background.neutral',
-            }}
-          >
-            {TABS.map((tab) => (
-              <Tab
-                key={tab.value}
-                value={tab.value}
-                label={tab.label}
-                icon={
-                  <Label color={tab.color} sx={{ mr: 1 }}>
-                    {tab.count}
-                  </Label>
-                }
-              />
-            ))}
-          </Tabs>
-
-          <Divider />
-
-          <InvoiceTableToolbar
+          <LibraryTableToolbar
             isFiltered={isFiltered}
             filterName={filterName}
-            filterEndDate={filterEndDate}
             onFilterName={handleFilterName}
-            optionsService={SERVICE_OPTIONS}
             onResetFilter={handleResetFilter}
-            filterStartDate={filterStartDate}
-            onFilterStartDate={(newValue) => {
-              setFilterStartDate(newValue);
-            }}
-            onFilterEndDate={(newValue) => {
-              setFilterEndDate(newValue);
-            }}
           />
 
           <TableContainer sx={{ position: 'relative', overflow: 'unset' }}>
             <TableSelectedAction
               dense={dense}
               numSelected={selected.length}
-              rowCount={tableData.length}
+              rowCount={libraryData.length}
               onSelectAllRows={(checked) =>
                 onSelectAllRows(
                   checked,
-                  tableData.map((row) => row.id)
+                  libraryData.map((row) => row.id)
                 )
               }
               action={
@@ -442,13 +331,13 @@ export default function LibraryListPage({ books }: { books: IResult[] }) {
                   order={order}
                   orderBy={orderBy}
                   headLabel={TABLE_HEAD}
-                  rowCount={tableData.length}
+                  rowCount={libraryData.length}
                   numSelected={selected.length}
                   onSort={onSort}
                   onSelectAllRows={(checked) =>
                     onSelectAllRows(
                       checked,
-                      tableData.map((row) => row.id)
+                      libraryData.map((row) => row.id)
                     )
                   }
                 />
@@ -470,7 +359,7 @@ export default function LibraryListPage({ books }: { books: IResult[] }) {
 
                   <TableEmptyRows
                     height={denseHeight}
-                    emptyRows={emptyRows(page, rowsPerPage, tableData.length)}
+                    emptyRows={emptyRows(page, rowsPerPage, libraryData.length)}
                   />
 
                   <TableNoData isNotFound={isNotFound} />
@@ -524,16 +413,10 @@ function applyFilter({
   inputData,
   comparator,
   filterName,
-  filterLocation,
-  filterStartDate,
-  filterEndDate,
 }: {
-  inputData: IResult[];
+  inputData: IBooks[];
   comparator: (a: any, b: any) => number;
   filterName: string;
-  filterLocation: string;
-  filterStartDate: Date | null;
-  filterEndDate: Date | null;
 }) {
   const stabilizedThis = inputData.map((el, index) => [el, index] as const);
 
@@ -547,20 +430,8 @@ function applyFilter({
 
   if (filterName) {
     inputData = inputData.filter(
-      (book) =>
-        book.properties.book.title[0].text.content.toLowerCase().indexOf(filterName.toLowerCase()) !== -1
-    );
-  }
-
-  if (filterLocation !== 'all') {
-    inputData = inputData.filter((book) => book.properties.location.select === filterLocation);
-  }
-
-  if (filterStartDate && filterEndDate) {
-    inputData = inputData.filter(
-      (book) =>
-        fTimestamp(book.properties.purchaseDate.rich_text[0].text.content) >= fTimestamp(filterStartDate) &&
-        fTimestamp(book.properties.purchaseDate.rich_text[0].text.content) <= fTimestamp(filterEndDate)
+      (libraryData) =>
+      libraryData.book.toLowerCase().indexOf(filterName.toLowerCase()) !== -1
     );
   }
 
