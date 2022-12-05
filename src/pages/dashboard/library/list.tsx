@@ -51,7 +51,7 @@ import LibraryTableToolbar from 'src/sections/@dashboard/library/list/libraryTab
 // ----------------------------------------------------------------------
 
 const TABLE_HEAD = [
-  { id: 'books', label: '도서명', align: 'left' },
+  { id: 'book', label: '도서명', align: 'left' },
   { id: 'purchaseDate', label: '출판사', align: 'left' },
   { id: 'publisher', label: '구매일시', align: 'left' },
   { id: 'list_price', label: '구매가격', align: 'center', width: 100 },

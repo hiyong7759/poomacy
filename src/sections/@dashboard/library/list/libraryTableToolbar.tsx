@@ -32,7 +32,7 @@ export default function LibraryTableToolbar({
         fullWidth
         value={filterName}
         onChange={onFilterName}
-        placeholder="Search client or invoice number..."
+        placeholder="도서명 입력"
         InputProps={{
           startAdornment: (
             <InputAdornment position="start">

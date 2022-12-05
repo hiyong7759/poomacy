@@ -15,7 +15,6 @@ import {
 // @types
 import { IBooks } from '../../../../@types/library';
 // components
-import Label from '../../../../components/label';
 import Iconify from '../../../../components/iconify';
 import { CustomAvatar } from '../../../../components/custom-avatar';
 import MenuPopover from '../../../../components/menu-popover';
@@ -40,7 +39,7 @@ export default function LibraryTableRow({
   onEditRow,
   onDeleteRow,
 }: Props) {
-  const { book_no, book, publisher, purchaseDate, quantity, list_price, location } = row;
+  const { id, book_no, book, publisher, purchaseDate, quantity, list_price, location } = row;
 
   const [openConfirm, setOpenConfirm] = useState(false);
 
@@ -64,7 +63,7 @@ export default function LibraryTableRow({
 
   return (
     <>
-      <TableRow hover selected={selected}>
+      <TableRow hover selected={selected} key={id}>
         <TableCell padding="checkbox">
           <Checkbox checked={selected} onClick={onSelectRow} />
         </TableCell>
@@ -100,17 +99,8 @@ export default function LibraryTableRow({
           {quantity}
         </TableCell>
 
-        <TableCell align="left">
-          <Label
-            variant="soft"
-            color={
-              (location === '본사' && 'success') ||
-              (location === '기타' && 'warning') ||
-              'default'
-            }
-          >
-            {location}
-          </Label>
+        <TableCell align="center">
+          {location ? location : '-'}
         </TableCell>
 
         <TableCell align="right">

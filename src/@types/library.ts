@@ -1,40 +1,4 @@
-// ----------------------------------------------------------------------
-
-export type IInvoiceAddress = {
-  id: string;
-  name: string;
-  address: string;
-  company: string;
-  email: string;
-  phone: string;
-};
-
-export type IInvoiceItem = {
-  id: string;
-  title: string;
-  description: string;
-  quantity: number;
-  price: number;
-  total: number;
-  service: string;
-};
-
-export type IInvoice = {
-  id: string;
-  sent: number;
-  status: string;
-  totalPrice: number;
-  invoiceNumber: string;
-  subTotalPrice: number;
-  taxes: number | string;
-  discount: number | string;
-  invoiceFrom: IInvoiceAddress;
-  invoiceTo: IInvoiceAddress;
-  createDate: Date | number;
-  dueDate: Date | number;
-  items: IInvoiceItem[];
-};
-
+// 노션 API data에서 사용될 data type
 export type IBooks = {
   id: string;
   book_no: number;
@@ -49,7 +13,7 @@ export type IBooks = {
   location: string | null;
 };
 
-// 노션 API data에서 사용될 data interface
+// 노션 API data에서 사용될 data interface 노션 response 구조 그대로
 export interface IResult {
   id: string;
   properties: {

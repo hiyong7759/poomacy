@@ -2,7 +2,7 @@
 import { alpha } from '@mui/material/styles';
 import { Stack, Typography, Box, CircularProgress } from '@mui/material';
 // utils
-import { fShortenNumber, fCurrency } from '../../../utils/formatNumber';
+import { fShortenNumber } from '../../../utils/formatNumber';
 // components
 import Iconify from '../../../components/iconify';
 
@@ -62,7 +62,7 @@ export default function LibraryAnalytic({ title, total, icon, color, percent, pr
         </Typography>
 
         <Typography variant="subtitle2" sx={{ color }}>
-          {fCurrency(price)}원
+          {price.toLocaleString()}원
         </Typography>
       </Stack>
     </Stack>
