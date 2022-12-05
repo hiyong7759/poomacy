@@ -83,8 +83,8 @@ export const PATH_DASHBOARD = {
     root: path(ROOTS_DASHBOARD, '/library'),
     list: path(ROOTS_DASHBOARD, '/library/list'),
     new: path(ROOTS_DASHBOARD, '/library/new'),
-    edit: path(ROOTS_DASHBOARD, '/library/edit'),
-    view: (title: string) => path(ROOTS_DASHBOARD, `/library/${title}`),
+    view: (id: string) => path(ROOTS_DASHBOARD, `/library/${id}`),
+    edit: (id: string) => path(ROOTS_DASHBOARD, `/library/${id}/edit`),
   },
   eCommerce: {
     root: path(ROOTS_DASHBOARD, '/e-commerce'),

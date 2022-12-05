@@ -52,8 +52,8 @@ import LibraryTableToolbar from 'src/sections/@dashboard/library/list/libraryTab
 
 const TABLE_HEAD = [
   { id: 'book', label: '도서명', align: 'left' },
-  { id: 'purchaseDate', label: '출판사', align: 'left' },
-  { id: 'publisher', label: '구매일시', align: 'left' },
+  { id: 'publisher', label: '출판사', align: 'left' },
+  { id: 'purchaseDate', label: '구매일시', align: 'left' },
   { id: 'list_price', label: '구매가격', align: 'center', width: 100 },
   { id: 'quantity', label: '수량', align: 'center' },
   { id: 'location', label: '현위치', align: 'left' },
@@ -106,13 +106,13 @@ LibraryListPage.getLayout = (page: React.ReactElement) => <DashboardLayout>{page
 
 //getStaticProps()에서 받은 데이터값을 props { books } 로 받음
 export default function LibraryListPage({ books }: { books: IResult[] }) {
-  
+  console.log(books)
   const library: IBooks[] = books.map((row) => ({
     id: row.id,
     book_no: row.properties.book_no.number,
     book: row.properties.book.title[0].text.content,
     publisher: row.properties.publisher.rich_text[0].text.content,
-    purchaseDate: row.properties.purchaseDate.rich_text[0].text.content,
+    purchaseDate: new Date(row.properties.purchaseDate.rich_text[0].text.content),
     quantity: row.properties.quantity.number,
     price: row.properties.price.number,
     list_price: row.properties.list_price.number,
@@ -122,6 +122,7 @@ export default function LibraryListPage({ books }: { books: IResult[] }) {
   }));
   console.log(library[0])
   console.log(books[0])
+  console.log(library[0].purchaseDate)
   const theme = useTheme();
 
   const { themeStretch } = useSettingsContext();
@@ -145,7 +146,7 @@ export default function LibraryListPage({ books }: { books: IResult[] }) {
     onChangeDense,
     onChangePage,
     onChangeRowsPerPage,
-  } = useTable({ defaultOrderBy: 'createDate' });
+  } = useTable({ defaultOrderBy: '' });
 
   const [libraryData, setLibrarysData] = useState(library);
 
@@ -213,11 +214,11 @@ export default function LibraryListPage({ books }: { books: IResult[] }) {
   };
 
   const handleEditRow = (id: string) => {
-    push(PATH_DASHBOARD.invoice.edit(id));
+    push(PATH_DASHBOARD.library.edit(id));
   };
 
   const handleViewRow = (id: string) => {
-    push(PATH_DASHBOARD.invoice.view(id));
+    push(PATH_DASHBOARD.library.view(id));
   };
 
   const handleResetFilter = () => {
@@ -427,12 +428,14 @@ function applyFilter({
   });
 
   inputData = stabilizedThis.map((el) => el[0]);
-
+  console.log('filterName', filterName)
+  console.log('libraryData.book', inputData.map)
   if (filterName) {
     inputData = inputData.filter(
       (libraryData) =>
       libraryData.book.toLowerCase().indexOf(filterName.toLowerCase()) !== -1
     );
+
   }
 
   return inputData;

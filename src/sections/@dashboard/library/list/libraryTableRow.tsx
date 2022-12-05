@@ -19,6 +19,7 @@ import Iconify from '../../../../components/iconify';
 import { CustomAvatar } from '../../../../components/custom-avatar';
 import MenuPopover from '../../../../components/menu-popover';
 import ConfirmDialog from '../../../../components/confirm-dialog';
+import { fDate } from 'src/utils/formatTime';
 
 // ----------------------------------------------------------------------
 
@@ -63,7 +64,7 @@ export default function LibraryTableRow({
 
   return (
     <>
-      <TableRow hover selected={selected} key={id}>
+      <TableRow hover selected={selected}>
         <TableCell padding="checkbox">
           <Checkbox checked={selected} onClick={onSelectRow} />
         </TableCell>
@@ -91,7 +92,7 @@ export default function LibraryTableRow({
 
         <TableCell align="left">{publisher}</TableCell>
 
-        <TableCell align="left">{purchaseDate}</TableCell>
+        <TableCell align="left">{fDate(purchaseDate)}</TableCell>
 
         <TableCell align="center">{list_price.toLocaleString()}원</TableCell>
 

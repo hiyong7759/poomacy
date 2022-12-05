@@ -4,7 +4,7 @@ export type IBooks = {
   book_no: number;
   book: string;
   publisher: string;
-  purchaseDate: string;
+  purchaseDate: Date;
   quantity: number;
   price: number;
   list_price: number;
