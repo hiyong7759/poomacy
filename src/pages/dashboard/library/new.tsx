@@ -26,23 +26,23 @@ export default function InvoiceCreatePage() {
   return (
     <>
       <Head>
-        <title> Invoices: Create a new invoice | Minimal UI</title>
+        <title> 도서 등록 | Poomacy</title>
       </Head>
 
       <Container maxWidth={themeStretch ? false : 'lg'}>
         <CustomBreadcrumbs
-          heading="Create a new invoice"
+          heading="도서 등록"
           links={[
             {
               name: 'Dashboard',
               href: PATH_DASHBOARD.root,
             },
             {
-              name: 'Invoices',
-              href: PATH_DASHBOARD.invoice.list,
+              name: '도서 목록',
+              href: PATH_DASHBOARD.library.list,
             },
             {
-              name: 'New invoice',
+              name: '도서 등록',
             },
           ]}
         />

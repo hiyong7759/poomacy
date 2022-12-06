@@ -20,6 +20,7 @@ import { CustomAvatar } from '../../../../components/custom-avatar';
 import MenuPopover from '../../../../components/menu-popover';
 import ConfirmDialog from '../../../../components/confirm-dialog';
 import { fDate } from 'src/utils/formatTime';
+import Label, { LabelColor } from 'src/components/label';
 
 // ----------------------------------------------------------------------
 
@@ -40,7 +41,7 @@ export default function LibraryTableRow({
   onEditRow,
   onDeleteRow,
 }: Props) {
-  const { id, book_no, book, publisher, purchaseDate, quantity, list_price, location } = row;
+  const { book, publisher, purchaseDate, quantity, list_price, purchaser, location, locationColor } = row;
 
   const [openConfirm, setOpenConfirm] = useState(false);
 
@@ -61,6 +62,26 @@ export default function LibraryTableRow({
   const handleClosePopover = () => {
     setOpenPopover(null);
   };
+
+  // locationColor를 LabelColor 색으로 변경
+  let locationColorVar: LabelColor = 'default';
+  switch (locationColor) {
+    case 'blue':
+      locationColorVar = 'success';
+      break;
+    case 'orange':
+      locationColorVar = 'primary';
+      break;
+    case 'red':
+      locationColorVar = 'secondary';
+      break;
+    case 'perple':
+      locationColorVar = 'default';
+      break;
+    default:
+      locationColorVar = 'default';
+      break;
+  }
 
   return (
     <>
@@ -84,13 +105,11 @@ export default function LibraryTableRow({
                 onClick={onViewRow}
                 sx={{ color: 'text.disabled', cursor: 'pointer' }}
               >
-                {book_no}
+                {publisher}
               </Link>
             </div>
           </Stack>
         </TableCell>
-
-        <TableCell align="left">{publisher}</TableCell>
 
         <TableCell align="left">{fDate(purchaseDate)}</TableCell>
 
@@ -100,8 +119,15 @@ export default function LibraryTableRow({
           {quantity}
         </TableCell>
 
+        <TableCell align="center">{purchaser}</TableCell>
+
         <TableCell align="center">
-          {location ? location : '-'}
+         <Label
+            variant="soft"
+            color={locationColorVar}
+          >
+            {location}
+          </Label>
         </TableCell>
 
         <TableCell align="right">

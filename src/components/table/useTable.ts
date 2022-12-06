@@ -20,7 +20,7 @@ export default function useTable(props?: UseTableProps): ReturnType {
 
   const [orderBy, setOrderBy] = useState(props?.defaultOrderBy || 'name');
 
-  const [order, setOrder] = useState<'asc' | 'desc'>(props?.defaultOrder || 'asc');
+  const [order, setOrder] = useState<'asc' | 'desc'>(props?.defaultOrder || 'desc');
 
   const [page, setPage] = useState(props?.defaultCurrentPage || 0);
 

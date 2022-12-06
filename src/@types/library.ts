@@ -9,8 +9,9 @@ export type IBooks = {
   price: number;
   list_price: number;
   author: string;
-  // purchaser: string | null | undefined;
-  location: string | null;
+  purchaser: string | null;
+  location: string;
+  locationColor: string;
 };
 
 // 노션 API data에서 사용될 data interface 노션 response 구조 그대로
@@ -42,10 +43,10 @@ export interface IResult {
       rich_text: [{ text: { content: string }}];
     };
     purchaser: {
-      rich_text: [{ plain_text: string | null | undefined }];
+      rich_text: [{ text: { content: string }}];
     };
     location: {
-      select: string;
+      select: { name: string, color: string };
     };
   }
 }

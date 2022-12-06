@@ -13,11 +13,10 @@ type Props = {
   title: string;
   total: number;
   percent: number;
-  price: number;
   color?: string;
 };
 
-export default function LibraryAnalytic({ title, total, icon, color, percent, price }: Props) {
+export default function LibraryAnalytic({ title, total, icon, color, percent }: Props) {
   return (
     <Stack
       direction="row"
@@ -61,9 +60,6 @@ export default function LibraryAnalytic({ title, total, icon, color, percent, pr
           </Box>
         </Typography>
 
-        <Typography variant="subtitle2" sx={{ color }}>
-          {price.toLocaleString()}원
-        </Typography>
       </Stack>
     </Stack>
   );

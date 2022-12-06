@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import sumBy from 'lodash/sumBy';
 // next
 import Head from 'next/head';
 import NextLink from 'next/link';
@@ -17,6 +16,8 @@ import {
   Container,
   IconButton,
   TableContainer,
+  Tabs,
+  Tab,
 } from '@mui/material';
 // routes
 import { PATH_DASHBOARD } from '../../../routes/paths';
@@ -48,16 +49,17 @@ import LibraryAnalytic from '../../../sections/@dashboard/library/libraryAnalyti
 import { Client } from "@notionhq/client";
 import LibraryTableRow from 'src/sections/@dashboard/library/list/libraryTableRow';
 import LibraryTableToolbar from 'src/sections/@dashboard/library/list/libraryTableToolbar';
+import Label from 'src/components/label';
 // ----------------------------------------------------------------------
 
 const TABLE_HEAD = [
-  { id: 'book', label: '도서명', align: 'left' },
-  { id: 'publisher', label: '출판사', align: 'left' },
-  { id: 'purchaseDate', label: '구매일시', align: 'left' },
+  { id: 'book', label: '도서명 및 출판사', align: 'left' , width: 400 },
+  { id: 'purchaseDate', label: '구매일시', align: 'left' , width: 150 },
   { id: 'list_price', label: '구매가격', align: 'center', width: 100 },
-  { id: 'quantity', label: '수량', align: 'center' },
-  { id: 'location', label: '현위치', align: 'left' },
-  { id: 'edit', label: '편집', align: 'left' },
+  { id: 'quantity', label: '수량', align: 'center'  , width: 100 },
+  { id: 'purchaser', label: '요청자', align: 'center' , width: 100 },
+  { id: 'location', label: '위치', align: 'center' , width: 100 },
+  { id: 'edit', label: '편집', align: 'center' },
 ];
 
 // 노션 API 데이터를 가져오기위해 getStaticProps 추가 서버사이드 랜더링 
@@ -107,6 +109,8 @@ LibraryListPage.getLayout = (page: React.ReactElement) => <DashboardLayout>{page
 //getStaticProps()에서 받은 데이터값을 props { books } 로 받음
 export default function LibraryListPage({ books }: { books: IResult[] }) {
   console.log(books)
+
+  
   const library: IBooks[] = books.map((row) => ({
     id: row.id,
     book_no: row.properties.book_no.number,
@@ -117,12 +121,13 @@ export default function LibraryListPage({ books }: { books: IResult[] }) {
     price: row.properties.price.number,
     list_price: row.properties.list_price.number,
     author: row.properties.author.rich_text[0].text.content,
-    // purchaser: row.properties.purchaser.rich_text[0].plain_text,
-    location: row.properties.location.select,
+    purchaser: row.properties.purchaser.rich_text[0]?.text.content,
+    location: row.properties.location.select?.name,
+    locationColor: row.properties.location.select?.color,
   }));
   console.log(library[0])
   console.log(books[0])
-  console.log(library[0].purchaseDate)
+  
   const theme = useTheme();
 
   const { themeStretch } = useSettingsContext();
@@ -146,19 +151,21 @@ export default function LibraryListPage({ books }: { books: IResult[] }) {
     onChangeDense,
     onChangePage,
     onChangeRowsPerPage,
-  } = useTable({ defaultOrderBy: '' });
+  } = useTable({ defaultOrderBy: 'purchaseDate' });
 
   const [libraryData, setLibrarysData] = useState(library);
 
   const [filterName, setFilterName] = useState('');
 
-  const [openConfirm, setOpenConfirm] = useState(false);
+  const [filterLocation, setFilterLocation] = useState('all');
 
+  const [openConfirm, setOpenConfirm] = useState(false);
 
   const dataFiltered = applyFilter({
     inputData: libraryData,
     comparator: getComparator(order, orderBy),
     filterName,
+    filterLocation,
   });
   
   const dataInPage = dataFiltered.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
@@ -166,10 +173,65 @@ export default function LibraryListPage({ books }: { books: IResult[] }) {
   const denseHeight = dense ? 56 : 76;
 
   const isFiltered =
-     filterName !== '' ;
+    filterLocation !== 'all' ||
+    filterName !== '' ;
 
   const isNotFound =
+    (!dataFiltered.length && !!filterLocation) ||
     (!dataFiltered.length && !!filterName);
+
+
+  const getLengthByLocation = (location: string) =>
+    location === 'all' ? libraryData.length :
+    libraryData.filter((item) => item.location === location).length;
+
+  const getPercentByLocation = (location: string) =>
+    (getLengthByLocation(location) / libraryData.length) * 100;
+
+  // location에서 중복값제거  
+  const locationFilter = library.filter(
+    (arr, index, callback) => index === callback.findIndex(t => t.location === arr.location)
+  );
+
+  // locationColor를 LabelColor 색으로 변경
+  locationFilter.map((row) => {
+    switch(row.locationColor){
+    case 'blue' : 
+      row.locationColor = 'success';
+      break;
+    case 'orange' : 
+      row.locationColor = 'primary';
+      break;
+    case 'red' : 
+      row.locationColor = 'secondary';
+      break;
+    case 'perple' : 
+      row.locationColor = 'default';
+      break;
+    default : 
+      row.locationColor = 'default';
+      break;
+    }
+  });
+  console.log(locationFilter)
+  
+ 
+
+  const TABS: any[] = locationFilter.map((row) => ({
+    value: row.location,
+    label: row.location,
+    color: row.locationColor,
+    count: getLengthByLocation(row.location) 
+  }));
+  
+  TABS.unshift({
+    value: 'all',
+    label: '전체',
+    color: 'info',
+    count: libraryData.length
+  })
+
+
 
   const handleOpenConfirm = () => {
     setOpenConfirm(true);
@@ -177,6 +239,11 @@ export default function LibraryListPage({ books }: { books: IResult[] }) {
 
   const handleCloseConfirm = () => {
     setOpenConfirm(false);
+  };
+
+  const handleFilterLocation = (event: React.SyntheticEvent<Element, Event>, newValue: string) => {
+      setPage(0);
+      setFilterLocation(newValue);
   };
 
   const handleFilterName = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -263,22 +330,44 @@ export default function LibraryListPage({ books }: { books: IResult[] }) {
               divider={<Divider orientation="vertical" flexItem sx={{ borderStyle: 'dashed' }} />}
               sx={{ py: 2 }}
             >
-              <LibraryAnalytic
-                title="도서가격 합계"
-                total={books.length}
-                percent={100}
-                price={sumBy(books.map((result: any): IResult => (
-                  result.properties.price
-                )), 'number')}
-                icon="ic:round-receipt"
-                color={theme.palette.info.main}
-              />
-
+              {TABS.map((tab) => (
+                <LibraryAnalytic
+                  key={tab.value}
+                  title={tab.label}
+                  total={getLengthByLocation(tab.value)}
+                  percent={getPercentByLocation(tab.value)}
+                  icon="eva:checkmark-circle-2-fill"
+                  color={`theme.palette.${tab.color}.main`}
+                />
+              ))}
             </Stack>
           </Scrollbar>
         </Card>
 
         <Card>
+        <Tabs
+            value={filterLocation}
+            onChange={handleFilterLocation}
+            sx={{
+              px: 2,
+              bgcolor: 'background.neutral',
+            }}
+          >
+            {TABS.map((tab) => (
+              <Tab
+                key={tab.value}
+                value={tab.value}
+                label={tab.label}
+                icon={
+                  <Label color={tab.color} sx={{ mr: 1 }}>
+                    {tab.count}
+                  </Label>
+                }
+              />
+            ))}
+          </Tabs>
+
+          <Divider />
           <LibraryTableToolbar
             isFiltered={isFiltered}
             filterName={filterName}
@@ -414,10 +503,12 @@ function applyFilter({
   inputData,
   comparator,
   filterName,
+  filterLocation,
 }: {
   inputData: IBooks[];
   comparator: (a: any, b: any) => number;
   filterName: string;
+  filterLocation: string;
 }) {
   const stabilizedThis = inputData.map((el, index) => [el, index] as const);
 
@@ -435,7 +526,10 @@ function applyFilter({
       (libraryData) =>
       libraryData.book.toLowerCase().indexOf(filterName.toLowerCase()) !== -1
     );
+  }
 
+  if (filterLocation !== 'all') {
+    inputData = inputData.filter((library) => library.location === filterLocation);
   }
 
   return inputData;

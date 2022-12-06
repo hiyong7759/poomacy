@@ -33,20 +33,20 @@ export default function InvoiceEditPage() {
   return (
     <>
       <Head>
-        <title> Invoice: Edit | Minimal UI</title>
+        <title> 도서 수정 | Poomacy</title>
       </Head>
 
       <Container maxWidth={themeStretch ? false : 'lg'}>
         <CustomBreadcrumbs
-          heading="Edit invoice"
+          heading="도서 수정"
           links={[
             {
               name: 'Dashboard',
               href: PATH_DASHBOARD.root,
             },
             {
-              name: 'Invoices',
-              href: PATH_DASHBOARD.invoice.list,
+              name: '도서목록',
+              href: PATH_DASHBOARD.library.list,
             },
             { name: `INV-${currentInvoice?.invoiceNumber}` },
           ]}

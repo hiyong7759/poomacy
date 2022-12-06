@@ -9,7 +9,8 @@ export type LabelColor =
   | 'info'
   | 'success'
   | 'warning'
-  | 'error';
+  | 'error'
+;
 
 export type LabelVariant = 'filled' | 'outlined' | 'soft';
 
